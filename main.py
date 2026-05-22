@@ -3,7 +3,7 @@ from components import Memory, RegisterFile
 from cpu import RISCV_CPU
 
 def main():
-    print("=== INICIANDO SIMULADOR RISC-V (MODO SINGLE-CYCLE) ===")
+    print("=== INICIANDO SIMULADOR RISC-V (MODO PIPELINE) ===")
 
     # 1. Inicializamos los componentes de hardware simulados
     memoria_ram = Memory()
