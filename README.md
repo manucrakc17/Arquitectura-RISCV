@@ -36,3 +36,25 @@ Para evitar la lectura de datos corruptos o desactualizados (*Data Hazards*), el
 Para gestionar las instrucciones de salto condicional (`BEQ`), el simulador implementa **Predicción Estática: Siempre No Tomado**. El procesador asume de forma optimista que el salto fallará y continúa cargando instrucciones secuenciales (`PC + 4`). 
 
 En caso de que la predicción falle (el salto efectivamente se cumple en la etapa EX), el procesador activa una rutina de **Pipeline Flush**, invalidando las instrucciones cargadas erróneamente en las etapas de Fetch y Decode (`None`) y redirigiendo el flujo al `PC` destino del salto.
+
+--------------------------------------------------------------------------------------
+
+Características Avanzadas Implementadas (Modo 2)
+
+### 1. Memoria Virtual Avanzada (MMU y TLB)
+El sistema emula la traducción y el mapeo de direcciones lógicas a físicas trabajando con páginas estándar de 4KB:
+1. **Caché TLB**: Estructura de tamaño reducido para traducciones instantáneas de páginas, administrada bajo la política de reemplazo `LRU`.
+2. **Tabla de Páginas de 2 Niveles**: Ante un *TLB Miss*, el hardware simula el recorrido jerárquico indexando descriptores en la RAM, añadiendo una penalización del doble de la latencia base.
+3. **Manejo de Page Faults**: El entorno detecta accesos a páginas no inicializadas y emula el overhead de asignación física por parte del sistema operativo.
+
+*Nota de diseño*: La MMU abstrae la dirección virtual dividiendo los bits superiores para simular la estructura de traducción jerárquica de RISC-V, permitiendo evaluar el rendimiento del almacenamiento sin necesidad de cargar un sistema operativo real.
+
+### 2. Jerarquía de Caché L1 Parametrizada
+Para evitar el acceso constante a la memoria principal, se incorporan dos estructuras independientes de almacenamiento temporal:
+* **Configurabilidad**: Permite modificar dinámicamente parámetros clave de hardware como el tamaño total de la caché, el tamaño de bloque y los niveles de asociatividad (Mapeo Directo y Asociativo por Conjuntos).
+* **Políticas de Reemplazo**: Estructuras de control diseñadas para alternar estrategias de desalojo de bloques cuando la caché se llena mediante algoritmos `LRU` o `FIFO`.
+* **Políticas de Escritura**: Simulación precisa de estrategias `Write-Through` (escritura directa en RAM) y `Write-Back` (uso de *dirty bits* con penalización doble en desalojo).
+
+### 3. Control de Ciclos por Latencia (Stalls de Memoria)
+Para emular de forma empírica el impacto físico del fenómeno del *Memory Wall*, el procesador incorpora un sistema de frenos en el tiempo de ejecución:
+* **Freno por Latencia (`memory_stall_cycles`)**: Al detectarse un fallo de caché o de TLB en las etapas de Fetch (`IF`) o Acceso a Memoria (`MEM`), el CPU calcula la penalización correspondiente en ciclos. El simulador congela la marcha completa de todas las etapas del pipeline, sumando el tiempo transcurrido pero deteniendo el avance de las instrucciones hasta que la RAM principal responde.
