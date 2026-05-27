@@ -15,7 +15,7 @@ El proyecto está estrictamente dividido en módulos independientes para facilit
 
 ---
 
-## 🚀 Características Avanzadas Implementadas (Modo 1)
+Características Avanzadas Implementadas (Modo 1)
 
 ### 1. Segmentación en 5 Etapas (Pipeline)
 El procesador ejecuta en paralelo las cinco etapas clásicas de la arquitectura RISC-V:
